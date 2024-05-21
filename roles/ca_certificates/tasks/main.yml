@@ -1,27 +1,42 @@
 ---
 - name: Copy standard CA certificate files
   copy:
-    src: /home/ec2-user/ansible_project/roles/ca_certificates/files/standard_certs
+    src: standard_certs/
     dest: /etc/ssl/certs/
     remote_src: yes
+  notify: Update CA Certificates
 
-- name: Check the validity of custom CA certificates
-  command: openssl x509 -noout -checkend 0 -in {{ item }}
+- name: Find all custom CA certificates
+  find:
+    paths: "{{ custom_certs_dir }}"
+    patterns: "*.crt"
+  register: custom_certs
+
+- name: Check the validity of each custom CA certificate
+  command: openssl x509 -noout -checkend 0 -in {{ item.path }}
   register: cert_check
-  with_fileglob:
-    - "roles/ca_certificates/files/custom_certs/*.crt"
+  with_items: "{{ custom_certs.files }}"
   failed_when: cert_check.rc != 0
-  ignore_errors: no
+  ignore_errors: yes
+
+- name: Set valid_cert_files variable
+  set_fact:
+    valid_cert_files: "{{ valid_cert_files | default([]) + [ item.item.path ] }}"
+  when: cert_check.rc == 0
+  with_items: "{{ cert_check.results }}"
 
 - name: Copy valid custom CA certificate files
   copy:
     src: "{{ item }}"
     dest: /usr/local/share/ca-certificates/
     remote_src: yes
-  with_fileglob:
-    - "roles/ca_certificates/files/custom_certs/*.crt"
-  when: item is in valid_cert_files
+  with_items: "{{ valid_cert_files }}"
+  notify: Update CA Certificates
 
 - name: Update CA certificates
   command: update-ca-certificates
+  when: valid_cert_files is defined
+  notify: Update CA Certificates
+
+- meta: flush_handlers
 
