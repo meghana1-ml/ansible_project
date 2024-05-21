@@ -1,10 +1,19 @@
 ---
+- name: Ensure Python 3 and pip3 are installed
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3
+    - python3-pip
+
 - name: Install Python virtual environment package
   pip:
     name: virtualenv
+    executable: pip3
 
 - name: Create virtual environment
-  command: virtualenv "{{ deployment_location }}/venv"
+  command: python3 -m venv "{{ deployment_location }}/venv"
 
 - name: Activate virtual environment and install the application
   pip:
