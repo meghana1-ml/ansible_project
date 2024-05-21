@@ -1,0 +1,13 @@
+---
+- name: Install Python virtual environment package
+  pip:
+    name: virtualenv
+
+- name: Create virtual environment
+  command: virtualenv "{{ deployment_location }}/venv"
+
+- name: Activate virtual environment and install the application
+  pip:
+    name: "{{ deployment_location }}/{{ wheel_file_name }}"
+    virtualenv: "{{ deployment_location }}/venv"
+

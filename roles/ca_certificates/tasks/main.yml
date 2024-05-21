@@ -1,0 +1,27 @@
+---
+- name: Copy standard CA certificate files
+  copy:
+    src: standard_certs/
+    dest: /etc/ssl/certs/
+    remote_src: yes
+
+- name: Check the validity of custom CA certificates
+  command: openssl x509 -noout -checkend 0 -in {{ item }}
+  register: cert_check
+  with_fileglob:
+    - "roles/ca_certificates/files/custom_certs/*.crt"
+  failed_when: cert_check.rc != 0
+  ignore_errors: no
+
+- name: Copy valid custom CA certificate files
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/share/ca-certificates/
+    remote_src: yes
+  with_fileglob:
+    - "roles/ca_certificates/files/custom_certs/*.crt"
+  when: item is in valid_cert_files
+
+- name: Update CA certificates
+  command: update-ca-certificates
+

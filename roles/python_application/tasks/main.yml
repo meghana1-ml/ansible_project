@@ -1,0 +1,18 @@
+---
+- name: Create deployment directory
+  file:
+    path: "{{ deployment_location }}"
+    state: directory
+
+- name: Copy wheel file to deployment location
+  copy:
+    src: "roles/python_application/files/{{ wheel_file_name }}"
+    dest: "{{ deployment_location }}/{{ wheel_file_name }}"
+    remote_src: yes
+
+- name: Copy application file to deployment location
+  copy:
+    src: "roles/python_application/files/app.py"
+    dest: "{{ deployment_location }}"
+    remote_src: yes
+

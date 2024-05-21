@@ -1,0 +1,6 @@
+---
+port: 8080
+deployment_location: /opt/example
+wheel_file_name: Example-1.1.1-py3-none-any.whl
+custom_certs_dir: /home/ec2-user/ansible_assessment_documents/ansible_project/roles/ca_certificates/files/custom_certs
+

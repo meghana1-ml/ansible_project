@@ -1,0 +1,11 @@
+---
+- name: Deploy Python application and configure certificates
+  hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+  roles:
+    - ca_certificates
+    - python_application
+    - virtual_environment
+
