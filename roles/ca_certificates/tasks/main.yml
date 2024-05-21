@@ -1,7 +1,7 @@
 ---
 - name: Copy standard CA certificate files
   copy:
-    src: standard_certs/
+    src: /home/ec2-user/ansible_project/roles/ca_certificates/files/standard_certs
     dest: /etc/ssl/certs/
     remote_src: yes
 
