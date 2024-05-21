@@ -13,7 +13,7 @@
 
 - name: Find all custom CA certificates
   find:
-    paths: "{{ custom_certs_dir }}"
+    paths: "{{ playbook_dir }}/roles/ca_certificates/files/{{ custom_certs_dir }}"
     patterns: "*.crt"
   register: custom_certs
 
