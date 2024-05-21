@@ -1,12 +1,7 @@
 ---
-- name: Ensure standard CA certificates directory exists
-  file:
-    path: /etc/ssl/certs/
-    state: directory
-
 - name: Copy standard CA certificate files
   copy:
-    src: "{{ playbook_dir }}/roles/ca_certificates/files/standard_certs/"
+    src: /home/ec2-user/ansible_project/roles/ca_certificates/files/standard_certs
     dest: /etc/ssl/certs/
     remote_src: yes
   notify: Update CA Certificates
@@ -17,47 +12,31 @@
     patterns: "*.crt"
   register: custom_certs
 
-- name: Debug custom certs
-  debug:
-    var: custom_certs
-
 - name: Check the validity of each custom CA certificate
   command: openssl x509 -noout -checkend 0 -in {{ item.path }}
   register: cert_check
   with_items: "{{ custom_certs.files }}"
-  failed_when: false
-
-- name: Debug cert check results
-  debug:
-    var: cert_check
+  failed_when: cert_check.rc != 0
+  ignore_errors: yes
 
 - name: Set valid_cert_files variable
   set_fact:
     valid_cert_files: "{{ valid_cert_files | default([]) + [ item.item.path ] }}"
-  when: item.rc == 0
+  when: cert_check.rc == 0
   with_items: "{{ cert_check.results }}"
-
-- name: Debug valid cert files
-  debug:
-    var: valid_cert_files
-
-- name: Ensure CA certificates directory exists
-  file:
-    path: /usr/local/share/ca-certificates/
-    state: directory
 
 - name: Copy valid custom CA certificate files
   copy:
     src: "{{ item }}"
     dest: /usr/local/share/ca-certificates/
     remote_src: yes
-  with_items: "{{ valid_cert_files | default([]) }}"
-  when: valid_cert_files is defined and valid_cert_files | length > 0
+  with_items: "{{ valid_cert_files }}"
   notify: Update CA Certificates
 
 - name: Update CA certificates
   command: update-ca-certificates
-  when: valid_cert_files is defined and valid_cert_files | length > 0
+  when: valid_cert_files is defined
+  notify: Update CA Certificates
 
 - meta: flush_handlers
 
