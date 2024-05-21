@@ -1,6 +1,6 @@
 ---
 - name: Deploy Python application and configure certificates
-  hosts: all
+  hosts: localhost
   become: true
   vars_files:
     - vars.yml
